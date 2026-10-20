@@ -149,12 +149,12 @@ class YunJheVoice:
 class HsiaoChenVoice:
     """ManimGX 相容之台灣女聲 (zh-TW-HsiaoChenNeural) 沉穩知性款語音合成器。
 
-    設定值：pitch: -15Hz, rate: +5%
-    聽感：降調後保留咬字溫和度，散發沉著內斂的講課質感，聽感極為舒適耐聽。
+    設定值：pitch: -15Hz, rate: +25%
+    聽感：降調後保留咬字溫和度，散發沉著內斂的講課質感，語速輕快俐落、不拖泥帶水。
     """
 
     voice_id: str = "zh-TW-HsiaoChenNeural"
-    rate: str = "+5%"
+    rate: str = "+25%"
     pitch: str = "-15Hz"
     apply_heteronym_fix: bool = True
 

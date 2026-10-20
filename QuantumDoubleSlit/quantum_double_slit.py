@@ -1,11 +1,11 @@
-"""量子雙狹縫實驗與波粒二象性（曉臻知性配音自動同步版）
+"""量子雙狹縫實驗與波粒二象性（原版66秒動畫節奏 + 曉臻高速知性配音版）
 
-配音設定：
-- 語音角色：台灣女聲 曉臻 (zh-TW-HsiaoChenNeural)
-- 沉穩知性款：pitch: -15Hz, rate: +5%
-- 聽感：降調後保留咬字溫和度，散發沉著內斂的講課質感，聽感極為舒適耐聽。
-- 整合 self.say() 自動同步，完全淘汰手動硬編碼秒數與外掛音軌。
+特色：
+1. 100% 完整保留原版 66.45 秒動畫節奏與原速變形（不被拉長，節奏明快自然）。
+2. 配搭台灣女聲 曉臻（pitch: -15Hz, rate: +25%），沉穩知性、輕快俐落。
+3. 採用 self.add_sound(self.speech(...)) 與畫面完全同步解說，自動輸出對應 .srt 字幕。
 """
+
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ CYAN_COLOR = "#00E5FF"
 
 
 class QuantumDoubleSlitScene(m.Scene):
-    """量子雙狹縫實驗：波粒二象性與觀測者效應精緻視覺解析（曉臻知性配音版）。"""
+    """量子雙狹縫實驗：波粒二象性與觀測者效應精緻視覺解析（原版節奏配音版）。"""
 
     voice = HsiaoChenVoice()
 
@@ -40,8 +40,9 @@ class QuantumDoubleSlitScene(m.Scene):
         )
         title_group = m.VGroup(title, subtitle).arrange(m.DOWN, buff=0.25).move_to(m.UP * 0.5)
 
+        self.add_sound(self.speech("雙狹縫實驗是量子力學的心臟，正如費曼所說，它揭示了微觀世界唯一的奧秘。"))
         self.play(m.FadeIn(title_group, shift=m.UP * 0.3), run_time=1.0)
-        self.wait(0.4)
+        self.wait(0.3)
 
         quote_feynman = m.VGroup(
             m.Text("「它包含了量子力學的心臟。」", font=CHINESE_FONT, font_size=22, color=m.WHITE),
@@ -68,18 +69,14 @@ class QuantumDoubleSlitScene(m.Scene):
             fill_opacity=0.6,
         )
 
-        self.say(
-            "如果量子力學有一個心臟，那一定是雙狹縫實驗。正如費曼所說，這裡包含了微觀世界唯一的奧秘。",
-            m.FadeIn(quote_box),
-            m.FadeIn(quote_feynman),
-        )
-        self.wait(0.6)
+        self.play(m.FadeIn(quote_box), m.FadeIn(quote_feynman), run_time=1.0)
+        self.wait(3.5)
 
         self.play(
             m.FadeOut(title_group, shift=m.UP * 0.4),
             m.FadeOut(quote_box),
             m.FadeOut(quote_feynman, shift=m.UP * 0.2),
-            run_time=0.7,
+            run_time=0.5,
         )
 
         # =====================================================================
@@ -166,21 +163,23 @@ class QuantumDoubleSlitScene(m.Scene):
         ).to_edge(m.DOWN, buff=0.25)
 
         cap_text1 = m.Text(
-            "【經典彈幕】宏觀彈珠均勻掃射，穿過狹縫的粒子在接收屏形成兩條清晰的直線！",
+            "【經典彈幕】宏觀彈珠大量射出，各自穿過狹縫 A 或 B，在後方形成清晰的雙直線！",
             font=CHINESE_FONT,
             font_size=18,
             color=m.WHITE,
         ).move_to(caption_box.get_center())
 
-        self.say(
-            "我們先從宏觀經典世界看起。當彈珠均勻掃射時，只有穿過兩道狹縫的彈珠能抵達屏幕，留下經典的雙線條紋。",
+        self.add_sound(self.speech("在經典世界中，均勻掃射的彈珠撞牆反彈，穿過狹縫的粒子在接收屏形成兩條清晰的直線。"))
+        self.play(
             m.FadeIn(hud_group),
             m.FadeIn(gun_group),
             m.FadeIn(barrier_group),
             m.FadeIn(screen_group),
             m.FadeIn(caption_box),
             m.FadeIn(cap_text1),
+            run_time=1.0,
         )
+        self.wait(0.5)
 
         # =====================================================================
         # 1.1 經典粒子均勻掃射彈幕 (Evenly swept barrage with wall bounces)
@@ -189,7 +188,9 @@ class QuantumDoubleSlitScene(m.Scene):
         fire_anims = []
 
         num_balls = 42
+        # 均勻角向掃射：出射角覆蓋 y_target ∈ [-2.1, 2.1]
         sweep_targets_y = np.linspace(-2.1, 2.1, num_balls)
+        # 略微打亂順序，呈現連續掃射彈幕感
         np.random.seed(42)
         perm = np.random.permutation(num_balls)
 
@@ -197,10 +198,12 @@ class QuantumDoubleSlitScene(m.Scene):
             target_y = float(sweep_targets_y[idx])
             ball = m.Dot(point=[gun_x + 0.7, 0, 0], radius=0.065, color=m.YELLOW)
 
+            # 檢查是否通過狹縫 A 或 B (slit_y = ±0.75, 寬度約 ±0.22)
             passed_slit_a = abs(target_y - slit_y) <= (slit_w / 2)
             passed_slit_b = abs(target_y - (-slit_y)) <= (slit_w / 2)
 
             if passed_slit_a or passed_slit_b:
+                # 通過狹縫：飛過狹縫並直達感光接收屏，形成經典條紋
                 s_y = slit_y if passed_slit_a else -slit_y
                 end_y = float(np.clip(s_y + np.random.normal(0, 0.18), -2.0, 2.0))
                 p_slit = np.array([barrier_x, target_y, 0])
@@ -216,7 +219,9 @@ class QuantumDoubleSlitScene(m.Scene):
                     m.FadeOut(ball, run_time=0.04),
                 )
             else:
+                # 沒通過狹縫：撞在屏障牆壁上，彈性/反彈反射後淡化消失
                 p_wall = np.array([barrier_x - 0.11, target_y, 0])
+                # 反彈向左後方散去 (x 反向，y 繼續按原方向散射)
                 p_bounce = np.array([barrier_x - 0.75, target_y * 1.15, 0])
 
                 anim = m.Succession(
@@ -249,19 +254,19 @@ class QuantumDoubleSlitScene(m.Scene):
             "經典雙峰分佈", font=CHINESE_FONT, font_size=14, color=m.YELLOW
         ).next_to(curve_two_stripes, m.RIGHT, buff=0.10)
 
-        self.say(
-            "沒對準狹縫的彈珠撞牆反彈，對準的穿過狹縫，在後方統計出直觀的雙峰分佈。",
+        self.play(
             m.Create(curve_two_stripes),
             m.FadeIn(two_peak_label),
+            run_time=0.8,
         )
-        self.wait(0.5)
+        self.wait(1.5)
 
         self.play(
             m.FadeOut(screen_hits_classical),
             m.FadeOut(curve_two_stripes),
             m.FadeOut(two_peak_label),
             m.FadeOut(slit_labels),
-            run_time=0.6,
+            run_time=0.5,
         )
 
         # =====================================================================
@@ -275,7 +280,7 @@ class QuantumDoubleSlitScene(m.Scene):
         ).move_to(hud_bar.get_right() - np.array([2.2, 0, 0]))
 
         cap_text2 = m.Text(
-            "【1801 年｜光波干涉】光源發射同心波前，經雙狹縫分開後產生大面積半圓干涉！",
+            "【1801 年｜光波干涉】雷射光源發射半圓形同心波前，狹縫分開後產生大面積半圓干涉！",
             font=CHINESE_FONT,
             font_size=17,
             color=m.WHITE,
@@ -287,19 +292,21 @@ class QuantumDoubleSlitScene(m.Scene):
         laser_lens = m.Arc(
             radius=0.3, start_angle=-m.PI / 2, angle=m.PI, stroke_color=CYAN_COLOR, stroke_width=2.5
         ).move_to(laser_tube.get_right())
-        laser_label = m.Text("同調光源", font=CHINESE_FONT, font_size=15, color=CYAN_COLOR).next_to(
+        laser_label = m.Text("雷射同調光源", font=CHINESE_FONT, font_size=15, color=CYAN_COLOR).next_to(
             laser_tube, m.DOWN, buff=0.2
         )
         laser_source_group = m.VGroup(laser_tube, laser_lens, laser_label)
 
-        self.say(
-            "然而在一八零一年，托馬斯·楊用光波進行了相同的實驗，結果卻完全不同。",
+        self.add_sound(self.speech("一八零一年，托馬斯·楊發現光波通過雙狹縫會分裂成兩組次級波，互相交疊產生明暗干涉！"))
+        self.play(
             m.Transform(hud_status, new_hud_status1),
             m.ReplacementTransform(cap_text1, cap_text2),
             m.ReplacementTransform(gun_group, laser_source_group),
+            run_time=0.7,
         )
+        self.wait(0.4)
 
-        # 發射源向狹縫傳播的同心圓波前
+        # 1. 發射源向狹縫傳播的同心圓波前 (Concentric circular wavefronts towards barrier)
         pre_semicircles = m.VGroup()
         for r_pre in np.linspace(0.6, 3.8, 6):
             semi_pre = m.Arc(
@@ -318,11 +325,12 @@ class QuantumDoubleSlitScene(m.Scene):
             run_time=1.4,
         )
 
-        # 狹縫後方：產生兩列完整的「大面積半圓次級波」
+        # 2. 狹縫後方：產生兩列完整的「大面積半圓次級波」（Semicircular wavelets）
         post_semicircles_a = m.VGroup()
         post_semicircles_b = m.VGroup()
         semi_radii = np.linspace(0.35, 2.3, 7)
         for r in semi_radii:
+            # 半圓弧度：約 170 度，呈現飽滿的半圓擴散感
             arc_a = m.Arc(
                 radius=r,
                 start_angle=-m.PI / 2.1,
@@ -351,11 +359,11 @@ class QuantumDoubleSlitScene(m.Scene):
             color=m.YELLOW,
         ).move_to(caption_box.get_center())
 
-        self.say(
-            "雙狹縫化身為兩個次級波源，向外擴散的半圓波相互交疊，波峰與波谷相長相消，形成了明暗相間的干涉條紋。",
+        self.play(
             m.ReplacementTransform(cap_text2, cap_text2b),
             m.FadeIn(post_semicircles_a, lag_ratio=0.12),
             m.FadeIn(post_semicircles_b, lag_ratio=0.12),
+            run_time=1.8,
         )
 
         # 接收屏上的波動干涉曲線
@@ -374,9 +382,9 @@ class QuantumDoubleSlitScene(m.Scene):
         self.play(
             m.Create(curve_interference),
             m.FadeIn(inf_label),
-            run_time=1.0,
+            run_time=0.8,
         )
-        self.wait(1.0)
+        self.wait(1.8)
 
         self.play(
             m.FadeOut(pre_semicircles),
@@ -384,11 +392,11 @@ class QuantumDoubleSlitScene(m.Scene):
             m.FadeOut(post_semicircles_b),
             m.FadeOut(curve_interference),
             m.FadeOut(inf_label),
-            run_time=0.8,
+            run_time=0.5,
         )
 
         # =====================================================================
-        # 3. 0:25 電子束：均勻分佈發射，到狹縫前淡化消失，感光屏顯現干涉圖樣
+        # 3. 0:25 電子束：清楚顯示大量電子穿過兩狹縫，累積出干涉圖案
         # =====================================================================
         electron_gun_body = m.Rectangle(
             width=0.9, height=0.7, fill_color=m.BLUE_E, fill_opacity=0.95, stroke_color=m.TEAL_B, stroke_width=1.5
@@ -408,6 +416,9 @@ class QuantumDoubleSlitScene(m.Scene):
         )
         electron_gun_group = m.VGroup(electron_gun_body, electron_gun_nozzle, electron_gun_label)
 
+        # =====================================================================
+        # 3. 0:25 電子束：均勻分佈發射，到狹縫前淡化消失，感光屏顯現干涉圖樣
+        # =====================================================================
         new_hud_status2a = m.Text(
             "實驗：發射大量電子束",
             font=CHINESE_FONT,
@@ -422,13 +433,16 @@ class QuantumDoubleSlitScene(m.Scene):
             color=m.WHITE,
         ).move_to(caption_box.get_center())
 
-        self.say(
-            "那麼，如果我們換成具有質量的實體粒子，例如電子，又會發生什麼呢？",
+        self.add_sound(self.speech("如果換成具有質量的實體電子，預期是雙線，但感光屏上竟然同樣浮現出干涉圖樣！"))
+        self.play(
             m.Transform(hud_status, new_hud_status2a),
             m.ReplacementTransform(cap_text2b, cap_text3a),
             m.ReplacementTransform(laser_source_group, electron_gun_group),
+            run_time=0.7,
         )
+        self.wait(0.4)
 
+        # 預期雙峰曲線 vs 實際干涉曲線之比對圖例
         expected_curve = curve_two_stripes.copy().set_stroke(color=m.GREY_A, width=1.8)
 
         legend_expected = m.VGroup(
@@ -447,7 +461,7 @@ class QuantumDoubleSlitScene(m.Scene):
 
         self.play(m.FadeIn(expected_curve), m.FadeIn(legend_expected), run_time=0.6)
 
-        # 動態展示：電子束與 0:06 一樣全角度均勻角向掃射，但所有電子在狹縫前淡化消失
+        # 動態展示：電子束與 0:06 一樣全角度均勻角向掃射，但所有電子在狹縫前（x ≈ barrier_x - 0.45）淡化消失，看不出來怎麼通過！
         beam_fire_anims = []
         beam_screen_hits = m.VGroup()
         num_beam_electrons = 42
@@ -460,6 +474,7 @@ class QuantumDoubleSlitScene(m.Scene):
             e_dot = m.Dot(point=[gun_x + 0.75, 0, 0], radius=0.06, color=m.TEAL_A)
             p_fade = np.array([barrier_x - 0.45, target_y * 0.75, 0])
 
+            # 抽樣感光屏干涉落點（波粒二象性：微觀不可知通過何處，宏觀感光屏顯現干涉）
             while True:
                 cand_y = float(np.random.uniform(-2.0, 2.0))
                 prob = float((np.cos(3.8 * cand_y) ** 2) * np.exp(-(cand_y**2) / 2.2))
@@ -470,6 +485,7 @@ class QuantumDoubleSlitScene(m.Scene):
             hit_d = m.Dot(point=p_screen, radius=0.045, color=m.TEAL_A)
             beam_screen_hits.add(hit_d)
 
+            # 電子均勻掃射出發，飛向狹縫前淡化消失（看不出來怎麼通過）
             anim = m.Succession(
                 m.FadeIn(e_dot, run_time=0.04),
                 e_dot.animate(run_time=0.35, rate_func=m.linear).move_to(p_fade).set_opacity(0.0),
@@ -480,14 +496,14 @@ class QuantumDoubleSlitScene(m.Scene):
         curve_interference_beam = m.VMobject(stroke_color=m.TEAL_A, stroke_width=2.5)
         curve_interference_beam.set_points_smoothly(inf_pts)
 
-        self.say(
-            "直覺上，我們預期電子會像彈珠一樣留下雙線。但令人震驚的是，感光屏上竟然浮現出了波動干涉紋！",
+        self.play(
             m.AnimationGroup(*beam_fire_anims, lag_ratio=0.045),
             m.FadeIn(beam_screen_hits, lag_ratio=0.045),
             m.Create(curve_interference_beam),
             m.FadeIn(legend_actual),
+            run_time=2.6,
         )
-        self.wait(0.8)
+        self.wait(1.8)
 
         self.play(
             m.FadeOut(expected_curve),
@@ -495,11 +511,14 @@ class QuantumDoubleSlitScene(m.Scene):
             m.FadeOut(beam_screen_hits),
             m.FadeOut(curve_interference_beam),
             m.FadeOut(legend_actual),
-            run_time=0.6,
+            run_time=0.5,
         )
 
         # =====================================================================
-        # 3.1 0:28 - 0:37 單電子自我干涉三階段
+        # 3.1 0:28 - 0:37 分鏡修改
+        # 1. 電子一個個發射，到狹縫前消失，感光屏一個一個點出現
+        # 2. 加速電子發射，感光屏上還是出現了干涉紋
+        # 3. 揭露本質：發射的電子變成了波，在通過狹縫時與自己產生了干涉
         # =====================================================================
 
         # -------------------------------------------------------------
@@ -519,11 +538,13 @@ class QuantumDoubleSlitScene(m.Scene):
             color=m.WHITE,
         ).move_to(caption_box.get_center())
 
-        self.say(
-            "會不會是大量電子在飛行中相互推擠干擾？為了排除這個可能，我們將發射速率降到極低，一次只發射一顆電子。",
+        self.add_sound(self.speech("為了排除電子間的相互推擠，我們一次只發射一顆電子。"))
+        self.play(
             m.Transform(hud_status, new_hud_status2b1),
             m.ReplacementTransform(cap_text3a, cap_step1),
+            run_time=0.5,
         )
+        self.wait(0.15)
 
         # 發射第 1 顆電子：飛向狹縫前淡化消失 -> 感光屏亮點 1
         e_single1 = m.Dot(point=[gun_x + 0.75, 0, 0], radius=0.075, color=m.TEAL_A)
@@ -532,50 +553,51 @@ class QuantumDoubleSlitScene(m.Scene):
 
         self.play(
             m.FadeIn(e_single1),
-            e_single1.animate(run_time=0.55, rate_func=m.linear).move_to(np.array([barrier_x - 0.45, 0.25, 0])).set_opacity(0.0),
+            e_single1.animate(run_time=0.30, rate_func=m.linear).move_to(np.array([barrier_x - 0.45, 0.25, 0])).set_opacity(0.0),
         )
         self.play(
             m.FadeOut(e_single1),
             m.FadeIn(hit_dot1),
             m.Flash(hit_dot1, color=m.YELLOW, line_length=0.15, flash_radius=0.3),
-            run_time=0.35,
+            run_time=0.18,
         )
+        self.wait(0.05)
 
-        # 發射第 2 顆電子
+        # 發射第 2 顆電子：飛向狹縫前淡化消失 -> 感光屏亮點 2
         e_single2 = m.Dot(point=[gun_x + 0.75, 0, 0], radius=0.075, color=m.TEAL_A)
         hit_pt2 = np.array([screen_x - 0.12, 0.82, 0])
         hit_dot2 = m.Dot(point=hit_pt2, radius=0.065, color=m.YELLOW)
 
         self.play(
             m.FadeIn(e_single2),
-            e_single2.animate(run_time=0.55, rate_func=m.linear).move_to(np.array([barrier_x - 0.45, -0.3, 0])).set_opacity(0.0),
+            e_single2.animate(run_time=0.30, rate_func=m.linear).move_to(np.array([barrier_x - 0.45, -0.3, 0])).set_opacity(0.0),
         )
         self.play(
             m.FadeOut(e_single2),
             m.FadeIn(hit_dot2),
             m.Flash(hit_dot2, color=m.YELLOW, line_length=0.15, flash_radius=0.3),
-            run_time=0.35,
+            run_time=0.18,
         )
+        self.wait(0.05)
 
-        # 發射第 3 顆電子
+        # 發射第 3 顆電子：飛向狹縫前淡化消失 -> 感光屏亮點 3
         e_single3 = m.Dot(point=[gun_x + 0.75, 0, 0], radius=0.075, color=m.TEAL_A)
         hit_pt3 = np.array([screen_x - 0.12, -0.82, 0])
         hit_dot3 = m.Dot(point=hit_pt3, radius=0.065, color=m.YELLOW)
 
         self.play(
             m.FadeIn(e_single3),
-            e_single3.animate(run_time=0.55, rate_func=m.linear).move_to(np.array([barrier_x - 0.45, 0.1, 0])).set_opacity(0.0),
+            e_single3.animate(run_time=0.30, rate_func=m.linear).move_to(np.array([barrier_x - 0.45, 0.1, 0])).set_opacity(0.0),
         )
         self.play(
             m.FadeOut(e_single3),
             m.FadeIn(hit_dot3),
             m.Flash(hit_dot3, color=m.YELLOW, line_length=0.15, flash_radius=0.3),
-            run_time=0.35,
+            run_time=0.18,
         )
-        self.wait(0.3)
 
         # -------------------------------------------------------------
-        # 2. 排除干擾後，干涉紋依然出現
+        # 2. 加速電子發射，感光屏上還是出現了干涉紋
         # -------------------------------------------------------------
         new_hud_status2b2 = m.Text(
             "排除干擾後，干涉紋依然出現",
@@ -591,10 +613,11 @@ class QuantumDoubleSlitScene(m.Scene):
             color=m.YELLOW,
         ).move_to(caption_box.get_center())
 
-        self.say(
-            "屏幕上一個個光斑孤立出現。當成千上萬顆單電子累積之後，干涉紋依然清晰浮現！",
+        self.add_sound(self.speech("感光屏上一個個光斑隨機落下，但當大量電子累積之後，干涉紋依然清晰浮現！"))
+        self.play(
             m.Transform(hud_status, new_hud_status2b2),
             m.ReplacementTransform(cap_step1, cap_step2),
+            run_time=0.6,
         )
 
         accel_dots = m.VGroup()
@@ -617,8 +640,9 @@ class QuantumDoubleSlitScene(m.Scene):
             m.FadeIn(self_inf_label),
             run_time=2.2,
         )
-        self.wait(1.0)
+        self.wait(2.6)
 
+        # 清除點點，切換到第 3 分鏡揭露本質
         self.play(
             m.FadeOut(hit_dot1),
             m.FadeOut(hit_dot2),
@@ -626,7 +650,7 @@ class QuantumDoubleSlitScene(m.Scene):
             m.FadeOut(accel_dots),
             m.FadeOut(curve_self_interference),
             m.FadeOut(self_inf_label),
-            run_time=0.6,
+            run_time=0.5,
         )
 
         # -------------------------------------------------------------
@@ -640,23 +664,27 @@ class QuantumDoubleSlitScene(m.Scene):
         ).move_to(hud_bar.get_right() - np.array([2.3, 0, 0]))
 
         cap_step3 = m.Text(
-            "【揭露奧秘】電子以物質波形態傳播，同時穿過雙狹縫，自己與自己產生了干涉！",
+            "【揭露奧秘】電子發射後在空間化為波，同時穿過雙狹縫，自己與自己產生了干涉！",
             font=CHINESE_FONT,
             font_size=17,
             color=m.YELLOW,
         ).move_to(caption_box.get_center())
 
-        self.say(
-            "這指向了唯一的物理真相：這顆孤獨的電子並非選擇走左縫或右縫，而是以物質波的形態同時通過了兩道狹縫，自己與自己發生了干涉！",
+        self.add_sound(self.speech("這證明電子是以物質波形態同時穿過雙狹縫，自己與自己干涉，直到撞擊屏幕瞬間才塌縮為單一光斑！"))
+        self.play(
             m.Transform(hud_status, new_hud_status2b3),
             m.ReplacementTransform(cap_step2, cap_step3),
+            run_time=0.6,
         )
+        self.wait(0.4)
 
-        # 慢速顯現電子化為波的動態演化
+        # 慢速顯現電子化為波的動態演化：
+        # 出發時為粒子亮點，波紋圍繞著粒子產生
         p_start = np.array([gun_x + 0.75, 0, 0])
         p_slit_target = np.array([barrier_x - 0.05, 0, 0])
 
         evo_particle = m.Dot(point=p_start, radius=0.09, color=m.YELLOW)
+        # 初始隨身波紋（以粒子當前位置為中心）
         w1_start = m.Arc(
             radius=0.35,
             start_angle=-m.PI / 2.5,
@@ -679,6 +707,8 @@ class QuantumDoubleSlitScene(m.Scene):
 
         self.play(m.FadeIn(evo_particle), m.FadeIn(evo_wave_group), run_time=0.3)
 
+        # 波跟著粒子一起向右平移飛向狹縫，且波隨前進擴大覆蓋範圍
+        # 抵達狹縫前瞬間：波紋擴大為半徑 1.15 與 1.65，中心隨粒子一起到達狹縫位置 p_slit_target
         w1_end = m.Arc(
             radius=1.1,
             start_angle=-m.PI / 2.2,
@@ -704,6 +734,7 @@ class QuantumDoubleSlitScene(m.Scene):
             m.ReplacementTransform(evo_wave_group, slit_impact_waves, run_time=1.2, rate_func=m.linear),
         )
 
+        # 波撞在狹縫，粒子完全隱沒，波無縫穿過雙狹縫，在後方形成各 5 列次級相干半圓波紋！
         sub_waves_a = m.VGroup()
         sub_waves_b = m.VGroup()
         evo_radii = np.linspace(0.45, 2.05, 5)
@@ -729,6 +760,7 @@ class QuantumDoubleSlitScene(m.Scene):
             sub_waves_a.add(arc_a)
             sub_waves_b.add(arc_b)
 
+        # 撞擊狹縫的入射波前自然淡出，雙狹縫兩側次級波同步湧出展開重疊干涉
         self.play(
             m.FadeOut(evo_particle),
             m.FadeOut(slit_impact_waves),
@@ -737,24 +769,25 @@ class QuantumDoubleSlitScene(m.Scene):
             run_time=1.5,
         )
 
+        # 波干涉抵達感光屏，波函數瞬間塌縮：單一顆電子永遠只在感光屏上顯現單一局域點！
         hit_wave_dot = m.Dot(point=[screen_x - 0.12, 0.0, 0], radius=0.07, color=m.YELLOW)
 
-        self.say(
-            "波函數在空間決定了機率分佈，而在撞擊屏幕的測量瞬間，波函數瞬間塌縮，留下一顆實體光斑。",
+        self.play(
             m.FadeIn(hit_wave_dot),
             m.Flash(hit_wave_dot, color=m.YELLOW, line_length=0.20, flash_radius=0.35),
+            run_time=0.5,
         )
-        self.wait(0.6)
+        self.wait(2.2)
 
         self.play(
             m.FadeOut(sub_waves_a),
             m.FadeOut(sub_waves_b),
             m.FadeOut(hit_wave_dot),
-            run_time=0.6,
+            run_time=0.5,
         )
 
         # =====================================================================
-        # 4. 0:38 觀測者塌縮：路徑測量導致干涉消失
+        # 4. 0:38 觀測者塌縮：不顯示發射中電子，以探測器閃光與感光屏亮點連動
         # =====================================================================
         new_hud_status3 = m.Text(
             "狀態：探測器路徑測量 (Which-Way)",
@@ -764,18 +797,20 @@ class QuantumDoubleSlitScene(m.Scene):
         ).move_to(hud_bar.get_right() - np.array([2.2, 0, 0]))
 
         cap_text5a = m.Text(
-            "【觀測者介入】只要探測器偵測到電子的具體路徑，感光屏就出現對應落點！",
+            "【觀測者介入】不需看發射過程：只要探測器偵測到電子，感光屏就出現亮點！",
             font=CHINESE_FONT,
             font_size=17,
             color=m.WHITE,
         ).move_to(caption_box.get_center())
 
-        self.say(
-            "如果我們想親眼看看到底發生了什麼，在狹縫旁安裝探測器，測量電子究竟通過哪道狹縫呢？",
+        self.add_sound(self.speech("但只要在狹縫旁安裝探測器測量路徑，波函數立即塌縮，干涉圖樣瞬間消失，徹底退化回經典雙線！"))
+        self.play(
             m.Transform(hud_status, new_hud_status3),
             m.ReplacementTransform(cap_step3, cap_text5a),
+            run_time=0.6,
         )
 
+        # 狹縫旁的紅光路徑探測器
         det_dot_a = m.Circle(
             radius=0.14, fill_color=m.RED, fill_opacity=0.9, stroke_color=m.WHITE, stroke_width=1.5
         )
@@ -796,6 +831,7 @@ class QuantumDoubleSlitScene(m.Scene):
             run_time=0.7,
         )
 
+        # 連動展示 1：探測器 A 閃光 -> 感光屏 A 縫後方亮點
         cap_text5b = m.Text(
             "探測器 A 閃光偵測！感光屏 A 縫後方立刻亮起，確定電子只通過狹縫 A！",
             font=CHINESE_FONT,
@@ -806,14 +842,16 @@ class QuantumDoubleSlitScene(m.Scene):
         hit_point_a1 = np.array([screen_x - 0.12, slit_y + 0.08, 0])
         hit_dot_a1 = m.Dot(point=hit_point_a1, radius=0.065, color=m.YELLOW)
 
-        self.say(
-            "當探測器 A 閃爍，我們確定電子穿過了狹縫 A，屏幕 A 縫後方隨之亮起。",
+        self.play(
             m.ReplacementTransform(cap_text5a, cap_text5b),
             m.Flash(det_dot_a, color=m.RED, line_length=0.25, flash_radius=0.45),
             m.FadeIn(hit_dot_a1),
             m.Flash(hit_dot_a1, color=m.YELLOW, line_length=0.15, flash_radius=0.3),
+            run_time=0.6,
         )
+        self.wait(0.4)
 
+        # 連動展示 2：探測器 B 閃光 -> 感光屏 B 縫後方亮點
         cap_text5c = m.Text(
             "探測器 B 閃光偵測！感光屏 B 縫後方立刻亮起，確定電子只通過狹縫 B！",
             font=CHINESE_FONT,
@@ -824,14 +862,16 @@ class QuantumDoubleSlitScene(m.Scene):
         hit_point_b1 = np.array([screen_x - 0.12, -slit_y - 0.08, 0])
         hit_dot_b1 = m.Dot(point=hit_point_b1, radius=0.065, color=m.YELLOW)
 
-        self.say(
-            "當探測器 B 閃爍，電子則被確定穿過狹縫 B。",
+        self.play(
             m.ReplacementTransform(cap_text5b, cap_text5c),
             m.Flash(det_dot_b, color=m.RED, line_length=0.25, flash_radius=0.45),
             m.FadeIn(hit_dot_b1),
             m.Flash(hit_dot_b1, color=m.YELLOW, line_length=0.15, flash_radius=0.3),
+            run_time=0.6,
         )
+        self.wait(0.4)
 
+        # 連動展示 3：感測器快速交替閃爍（表示密集觸發觀測），感光屏光斑連動累積出經典雙峰！
         cap_text5d = m.Text(
             "密集觀測：感測器高頻交替觸發，波函數頻繁塌縮，干涉圖樣消失還原為經典雙峰！",
             font=CHINESE_FONT,
@@ -851,6 +891,7 @@ class QuantumDoubleSlitScene(m.Scene):
             )
             rapid_hits.add(dot)
 
+        # 構造快速交替閃爍動畫列表（交替閃爍 A 與 B，頻率提高為原本 2 倍：20 次閃爍，每次 0.10s）
         alternating_flashes = []
         for i in range(20):
             target_det = det_dot_a if (i % 2 == 0) else det_dot_b
@@ -865,15 +906,15 @@ class QuantumDoubleSlitScene(m.Scene):
             "干涉消失：經典雙條紋", font=CHINESE_FONT, font_size=14, color=m.YELLOW
         ).next_to(curve_observed, m.RIGHT, buff=0.10)
 
-        self.say(
-            "不可思議的事情發生了：只要我們實施了觀測，干涉條紋便瞬間瓦解，徹底退化回經典的雙線分佈！",
+        self.play(
             m.ReplacementTransform(cap_text5c, cap_text5d),
             m.Succession(*alternating_flashes),
             m.FadeIn(rapid_hits, lag_ratio=0.015),
             m.Create(curve_observed),
             m.FadeIn(obs_label),
+            run_time=2.2,
         )
-        self.wait(1.0)
+        self.wait(1.7)
 
         # =====================================================================
         # 5. 波耳互補原理與數學本質昇華 (Bohr & Quantum Mathematics)
@@ -892,7 +933,7 @@ class QuantumDoubleSlitScene(m.Scene):
             m.FadeOut(rapid_hits),
             m.FadeOut(curve_observed),
             m.FadeOut(obs_label),
-            run_time=1.0,
+            run_time=0.5,
         )
 
         bohr_title = m.Text(
@@ -910,11 +951,13 @@ class QuantumDoubleSlitScene(m.Scene):
             m.Text("— 尼爾斯·波耳 (Niels Bohr), 1927", font=CHINESE_FONT, font_size=16, color=m.YELLOW_B),
         ).arrange(m.DOWN, buff=0.15).next_to(bohr_title, m.DOWN, buff=0.3)
 
-        self.say(
-            "正如波耳提出的互補原理：波動性與粒子性互為補充，任何試圖確定粒子路徑的實驗，都必然摧毀其波動干涉的能力。",
+        self.add_sound(self.speech("波耳互補原理指出：物質的波性與粒子性互補，任何試圖確定路徑的實驗，都必然摧毀波動干涉能力。"))
+        self.play(
             m.FadeIn(bohr_title, shift=m.UP * 0.2),
             m.FadeIn(bohr_quote),
+            run_time=1.0,
         )
+        self.wait(1.5)
 
         # 中央數學公式對比卡片
         math_card_bg = m.Rectangle(
@@ -966,11 +1009,12 @@ class QuantumDoubleSlitScene(m.Scene):
 
         math_rows = m.VGroup(row1, row2).arrange(m.DOWN, buff=0.45, aligned_edge=m.LEFT).move_to(math_card_bg.get_center())
 
-        self.say(
-            "從數學上看，未受干擾時，兩條路徑的機率振幅相加，產生了關鍵的干涉交叉項；一旦施加觀測，波函數塌縮，交叉項歸零，只剩下經典的機率相加。",
+        self.play(
             m.FadeIn(math_card_bg),
             m.FadeIn(math_rows),
+            run_time=1.0,
         )
+        self.wait(3.8)
 
         conclusion_box = m.SurroundingRectangle(
             math_card_bg, buff=0.1, color=m.YELLOW, stroke_width=2.5
@@ -982,12 +1026,13 @@ class QuantumDoubleSlitScene(m.Scene):
             color=m.YELLOW,
         ).next_to(math_card_bg, m.DOWN, buff=0.35)
 
-        self.say(
-            "在微觀量子世界中，觀測不是被動的旁觀，而是參與定義了物理現實。",
+        self.add_sound(self.speech("在微觀量子世界中，觀測不是被動的旁觀，而是參與定義了物理現實。"))
+        self.play(
             m.Create(conclusion_box),
             m.FadeIn(final_summary, shift=m.UP * 0.15),
+            run_time=1.0,
         )
-        self.wait(1.5)
+        self.wait(4.2)
 
         # 結尾淡出
         self.play(*[m.FadeOut(mob) for mob in list(self.mobjects)], run_time=1.2)

@@ -19,7 +19,13 @@ texts/
 *.mkv
 *.gif
 
+# 2.1 檢查用分鏡圖 (Storyboard PNGs)
+*.storyboard*.png
+**/*.storyboard*.png
+
 # 3. 音訊切片與合成中間檔 (可由腳本與 Edge-TTS 自動重新生成)
+voice/
+**/voice/
 scratch/
 **/scratch/
 tts/
