@@ -32,9 +32,13 @@ description: 指導 ManimGX (Rust + wgpu 核心，相容 Manim CE API) 幾何與
    * 草稿快速驗證：`manimgx render <scene_file.py> -r 1280x720 --fps 30`
    * 正式成品輸出：`manimgx render <scene_file.py>`（預設輸出 1920×1080 @ 60fps MP4，並自動混入 `self.say` 音軌與產出 `.srt` 字幕）。
    * 直式短影音 (9:16)：`manimgx render <scene_file.py> -r 1080x1920`（ManimGX 直式預設寬 8 × 高 14.2 單位；若移植舊版 9×16 座標腳本，可在開頭設定 `m.config.frame_height = 16.0`）。
-5. **雲端雙軌同步交付 (Sync & Backup - 方案 B)**：
-   * 渲染完成後，執行 `powershell -ExecutionPolicy Bypass -File .\sync_to_gdrive.ps1`，將各主題目錄下的最終 `.mp4` 增量備份至 Google Drive（`ManimGX-media` 資料夾）。
-   * 執行 `git add .` 與 `git commit` 將程式碼與設定推送到 GitHub（因 `.gitignore` 已配置，不會夾帶任何大型影片與暫存切片）。
+5. **雲端雙軌自動歸位 (Auto-Sync & Backup - 方案 B [強制執行])**：
+   * **渲染產出影片後必須自動同步**：凡是透過 `manimgx render`、`manim` 或腳本生成新的 `.mp4` 成品後，Agent **必須主動且自動**執行同步指令，無需等待使用者提醒：
+     ```powershell
+     powershell -ExecutionPolicy Bypass -File .\sync_to_gdrive.ps1
+     ```
+   * 確保所有完成的媒體檔案立即增量歸位至 Google Drive（`ManimGX-media` 資料夾）。
+   * 當階段性任務完成時，提示或協助使用者將乾淨輕量的程式碼推送到 GitHub（`git add .`、`git commit`、`git push`）。
 
 ---
 
@@ -85,17 +89,18 @@ description: 指導 ManimGX (Rust + wgpu 核心，相容 Manim CE API) 幾何與
 
 ---
 
-## 3. 雲端雙軌架構規範 (Cloud Sync & Backup Standard - 方案 B)
+## 3. 雲端雙軌架構與自動歸位規範 (Cloud Sync & Backup Standard - 方案 B)
 
-為了避免雲端硬碟（如 Google Drive）背景同步鎖死虛擬環境與渲染碎片，並確保 GitHub 儲存庫保持輕量，專案採用嚴格分離機制：
+為了避免雲端硬碟（如 Google Drive）背景同步鎖死虛擬環境與渲染碎片，並確保 GitHub 儲存庫保持輕量，專案採用嚴格分離與自動歸位機制：
 
 1. **工作目錄永遠維持在本地硬碟**（例如 `D:\WebDesign\ManimCEAnimate`），確保 Agent 與編譯器享有原生 NVMe/SSD 讀寫性能。
 2. **`.gitignore` 嚴格把關**：
    * 永久排除 `media/`、`*.mp4`、`partial_movie_files/`、`Tex/`、`tts/`、`scratch/`、`*.mp3`。
    * GitHub 只儲存 `.py`、`.md`、`.toml`、`.ps1` 等純文字代碼與設定，倉庫體積控制在數 MB 以內。
-3. **自動增量同步至 Google Drive**：
-   * 透過專案根目錄的 `sync_to_gdrive.ps1`，自動搜尋掛載的 Google Drive 上的 `ManimGX-media` 資料夾（如 `G:\我的雲端硬碟\數學教學\ManimGX-media`）。
-   * 只針對最終生成的 `.mp4` 影片進行增量備份，自動依主題建立對應目錄，不拷貝無用的分段切片暫存。
+3. **媒體檔案自動歸位至 Google Drive（Agent 強制行為）**：
+   * 任何動畫腳本渲染完成產出 `.mp4` 後，Agent **必須自動呼叫**根目錄下的 `sync_to_gdrive.ps1`，把成品搬移/同步到 Google Drive 上的 `ManimGX-media` 資料夾（如 `G:\我的雲端硬碟\數學教學\ManimGX-media`）。
+   * 增量同步機制只針對最終生成的 `.mp4` 影片進行備份，自動依主題建立對應目錄，不拷貝無用的分段切片暫存。
+   * 同步完成後主動向使用者回報歸位狀態（已複製哪些檔案、雲端硬碟路徑）。
 
 ---
 
