@@ -1,0 +1,24 @@
+{
+ "text": "\u73fe\u5728\u5c07\u9019\u4e09\u500b\u9577\u65b9\u9ad4\u4f9d\u5e8f\u5f80\u5916\u62c6\u958b\u3002",
+ "voice": "YunJheVoice(voice_id='zh-TW-YunJheNeural', rate='+15%', apply_heteronym_fix=True)",
+ "suffix": ".mp3",
+ "audio": "1ed800c37f430acc",
+ "edit": {
+  "start": 0.0,
+  "end": null,
+  "speed": 1.0,
+  "loop": null,
+  "gain": 0.0,
+  "fade_in": 0.0,
+  "fade_out": 0.0,
+  "pan": 0.0,
+  "duck": 0.0
+ },
+ "words": [
+  [
+   "\u73fe\u5728\u5c07\u9019\u4e09\u500b\u9577\u65b9\u9ad4\u4f9d\u5e8f\u5f80\u5916\u62c6\u958b\u3002",
+   0.23,
+   1.779090909090909
+  ]
+ ]
+}

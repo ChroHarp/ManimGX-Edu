@@ -1,0 +1,24 @@
+{
+ "text": "\u8003\u616e\u4e00\u500b\u5916\u63a5\u5713\u3002",
+ "voice": "YunJheVoice(voice_id='zh-TW-YunJheNeural', rate='+12%', pitch='+8Hz', apply_heteronym_fix=True)",
+ "suffix": ".mp3",
+ "audio": "d27563b724f70fab",
+ "edit": {
+  "start": 0.0,
+  "end": null,
+  "speed": 1.0,
+  "loop": null,
+  "gain": 0.0,
+  "fade_in": 0.0,
+  "fade_out": 0.0,
+  "pan": 0.0,
+  "duck": 0.0
+ },
+ "words": [
+  [
+   "\u8003\u616e\u4e00\u500b\u5916\u63a5\u5713\u3002",
+   0.22,
+   0.8314285714285714
+  ]
+ ]
+}

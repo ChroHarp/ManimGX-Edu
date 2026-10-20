@@ -1,0 +1,24 @@
+{
+ "text": "\u76f4\u89ba\u4e0a\uff0c\u6211\u5011\u9810\u671f\u96fb\u5b50\u6703\u50cf\u5f48\u73e0\u4e00\u6a23\u7559\u4e0b\u96d9\u7dda\u3002\u4f46\u4ee4\u4eba\u9707\u9a5a\u7684\u662f\uff0c\u611f\u5149\u5c4f\u4e0a\u7adf\u7136\u6d6e\u73fe\u51fa\u4e86\u6ce2\u52d5\u5e72\u6d89\u7d0b\uff01",
+ "voice": "HsiaoChenVoice(voice_id='zh-TW-HsiaoChenNeural', rate='+5%', pitch='-15Hz', apply_heteronym_fix=True)",
+ "suffix": ".mp3",
+ "audio": "830b1b44380c0301",
+ "edit": {
+  "start": 0.0,
+  "end": null,
+  "speed": 1.0,
+  "loop": null,
+  "gain": 0.0,
+  "fade_in": 0.0,
+  "fade_out": 0.0,
+  "pan": 0.0,
+  "duck": 0.0
+ },
+ "words": [
+  [
+   "\u76f4\u89ba\u4e0a\uff0c\u6211\u5011\u9810\u671f\u96fb\u5b50\u6703\u50cf\u5f48\u73e0\u4e00\u6a23\u7559\u4e0b\u96d9\u7dda\u3002\u4f46\u4ee4\u4eba\u9707\u9a5a\u7684\u662f\uff0c\u611f\u5149\u5c4f\u4e0a\u7adf\u7136\u6d6e\u73fe\u51fa\u4e86\u6ce2\u52d5\u5e72\u6d89\u7d0b\uff01",
+   0.19,
+   8.184117647058823
+  ]
+ ]
+}

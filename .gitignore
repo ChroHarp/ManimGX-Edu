@@ -1,0 +1,45 @@
+# ==========================================
+# ManimCEAnimate .gitignore
+# ==========================================
+
+# 1. Manim 輸出目錄與影片暫存 (已備份至 Google Drive)
+media/
+**/media/
+partial_movie_files/
+**/partial_movie_files/
+Tex/
+**/Tex/
+texts/
+**/texts/
+
+# 2. 影片與大型成品 (所有渲染影片皆由 sync_to_gdrive.ps1 備份至 GDrive)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.gif
+
+# 3. 音訊切片與合成中間檔 (可由腳本與 Edge-TTS 自動重新生成)
+scratch/
+**/scratch/
+tts/
+**/tts/
+master_narration.mp3
+master_narration.wav
+
+# 4. Python 暫存與虛擬環境
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+
+# 5. 作業系統與 IDE 暫存
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

@@ -1,0 +1,24 @@
+{
+ "text": "\u90a3\u9ebc\uff0c\u5982\u679c\u6211\u5011\u63db\u6210\u5177\u6709\u8cea\u91cf\u7684\u5be6\u9ad4\u7c92\u5b50\uff0c\u4f8b\u5982\u96fb\u5b50\uff0c\u53c8\u6703\u767c\u751f\u4ec0\u9ebc\u5462\uff1f",
+ "voice": "HsiaoChenVoice(voice_id='zh-TW-HsiaoChenNeural', rate='+5%', pitch='-15Hz', apply_heteronym_fix=True)",
+ "suffix": ".mp3",
+ "audio": "70c6743fd222e19f",
+ "edit": {
+  "start": 0.0,
+  "end": null,
+  "speed": 1.0,
+  "loop": null,
+  "gain": 0.0,
+  "fade_in": 0.0,
+  "fade_out": 0.0,
+  "pan": 0.0,
+  "duck": 0.0
+ },
+ "words": [
+  [
+   "\u90a3\u9ebc\uff0c\u5982\u679c\u6211\u5011\u63db\u6210\u5177\u6709\u8cea\u91cf\u7684\u5be6\u9ad4\u7c92\u5b50\uff0c\u4f8b\u5982\u96fb\u5b50\uff0c\u53c8\u6703\u767c\u751f\u4ec0\u9ebc\u5462\uff1f",
+   0.21,
+   5.018421052631579
+  ]
+ ]
+}
