@@ -8,6 +8,12 @@
    - `make_caption` / `set_caption`（繁中與 MathTex 混排底部 HUD 字幕）
    - `make_top_formula`（頂部 HUD 動態公式）
    - `add_fixed_orientation_mobjects`（3D 空間 Billboard 標籤，永遠正對鏡頭且支援位移與相機旋轉）
+4. 現代科技卡片簡報風格 (`TWInfographicScene`)：
+   - 深色科技感微網格背景 (`setup_slide_background`)
+   - 頂部導航狀態欄與進度計數器 (`make_slide_hud` / `update_slide_step`)
+   - 左側強調色條大標題組 (`make_title_hero`)
+   - 區域色塊卡片元件 (`make_zone_card`) 與圓角代碼膠囊 (`make_code_pill`)
+   - 資訊降噪聚焦控制 (`focus_cards`：自動高亮當前主角卡片並將非重點卡片半透明壓暗)
 """
 
 from __future__ import annotations
@@ -15,7 +21,7 @@ from __future__ import annotations
 import asyncio
 import re
 from dataclasses import dataclass
-from typing import Union
+from typing import Sequence, Union
 
 import edge_tts
 import manimgx as m
@@ -24,6 +30,28 @@ from manimgx.rendering.feed import rotation as _camera_rotation
 
 # 預設繁體中文字型（Windows 系統字型「源石黑體」，若無則自動回退至 ManimGX 內建 Noto Sans CJK）
 CHINESE_FONT = "GenSekiGothic TW"
+MONO_FONT = "Cascadia Code"
+
+# ── 現代科技卡片簡報風格色票 (Tech Infographic / Command Map Palette) ──
+SLIDE_BG = "#0B0F17"            # 深灰藍暗黑底色（非死黑）
+SLIDE_GRID_COLOR = "#1E293B"    # 背景微弱科技格線色
+SLIDE_CARD_BG = "#111827"       # 卡片半透明深色底
+SLIDE_CARD_STROKE = "#1F2937"   # 卡片預設細邊框色
+SLIDE_PILL_BG = "#0F172A"       # 膠囊標籤底色
+SLIDE_TEXT_MAIN = "#F8FAFC"     # 主標題亮白
+SLIDE_TEXT_MUTED = "#94A3B8"    # 副標題 / 頂部導航灰白
+
+# 四大主題色標 (Accent Colors：橘、天藍、薄荷青綠、亮紫)
+SLIDE_ACCENT_ORANGE = "#FB923C"
+SLIDE_ACCENT_CYAN = "#38BDF8"
+SLIDE_ACCENT_MINT = "#34D399"
+SLIDE_ACCENT_PURPLE = "#A855F7"
+SLIDE_PALETTE: tuple[str, ...] = (
+    SLIDE_ACCENT_ORANGE,
+    SLIDE_ACCENT_CYAN,
+    SLIDE_ACCENT_MINT,
+    SLIDE_ACCENT_PURPLE,
+)
 
 # 台灣國語數學破音字校正字典（僅作用於 TTS 合成音軌，不影響字幕文字）
 TW_HETERONYM_RULES: tuple[tuple[str, str], ...] = (
@@ -321,3 +349,196 @@ class TWThreeDScene(m.ThreeDScene):
                     _state[0], _state[1], _state[2] = phi, theta, gamma
 
             mob.add_updater(_face_camera)
+
+
+class TWInfographicScene(TWScene):
+    """現代科技卡片簡報與指令地圖風格基底場景 (Tech Infographic / Map Slide Style).
+
+    設計靈感：高對比深灰藍科技底色、微弱矩陣格線、頂部 HUD 章節進度欄、
+    彩色色標卡片 (Zone Cards)、圓角指令膠囊 (Code Pills)，以及透過「動態焦點高亮 +
+    非主角半透明壓暗 (Dimming)」徹底解決傳統高密度資訊圖表視覺過載的問題。
+    """
+
+    hud_group: m.VGroup | None = None
+    hud_section_label: m.Text | None = None
+    hud_counter_label: m.Text | None = None
+
+    def setup_slide_background(self, show_grid: bool = True) -> m.VGroup:
+        """初始化深色科技感背景與極低透明度格線。"""
+        self.camera.background_color = SLIDE_BG
+        bg_group = m.VGroup()
+        if show_grid:
+            grid = m.NumberPlane(
+                x_range=(-8, 8, 1),
+                y_range=(-4.5, 4.5, 1),
+                background_line_style={
+                    "stroke_color": SLIDE_GRID_COLOR,
+                    "stroke_width": 1.0,
+                    "stroke_opacity": 0.28,
+                },
+                axis_config={
+                    "stroke_color": SLIDE_GRID_COLOR,
+                    "stroke_width": 1.0,
+                    "stroke_opacity": 0.28,
+                },
+            )
+            bg_group.add(grid)
+            self.add(bg_group)
+        return bg_group
+
+    def make_slide_hud(
+        self,
+        series_title: str,
+        section_title: str,
+        step: int = 1,
+        total_steps: int = 10,
+        accent_color: m.ParsableManimColor = SLIDE_ACCENT_MINT,
+    ) -> m.VGroup:
+        """建立頂部 HUD 導航狀態欄（左上系列與章節名稱、右上進度計數、底部分隔細線）。"""
+        icon_bars = m.VGroup(
+            m.Line(m.ORIGIN, m.RIGHT * 0.14, stroke_width=3, color=SLIDE_ACCENT_ORANGE),
+            m.Line(m.ORIGIN, m.RIGHT * 0.22, stroke_width=3, color=accent_color),
+            m.Line(m.ORIGIN, m.RIGHT * 0.18, stroke_width=3, color=SLIDE_ACCENT_PURPLE),
+        ).arrange(m.DOWN, buff=0.05, aligned_edge=m.LEFT)
+
+        t_series = m.Text(
+            series_title,
+            font=CHINESE_FONT,
+            font_size=18,
+            color=SLIDE_TEXT_MAIN,
+        )
+        sep = m.Line(m.UP * 0.12, m.DOWN * 0.12, stroke_width=1.5, color=SLIDE_CARD_STROKE)
+        t_section = m.Text(
+            section_title,
+            font=CHINESE_FONT,
+            font_size=18,
+            color=accent_color,
+        )
+        left_nav = m.VGroup(icon_bars, t_series, sep, t_section).arrange(m.RIGHT, buff=0.16)
+        left_nav.to_corner(m.UL, buff=0.38)
+
+        counter_str = f"{step:02d} / {total_steps:02d}"
+        t_counter = m.Text(
+            counter_str,
+            font=MONO_FONT,
+            font_size=18,
+            color=SLIDE_TEXT_MUTED,
+        )
+        t_counter.to_corner(m.UR, buff=0.38)
+        t_counter.match_y(left_nav)
+
+        divider = m.Line(
+            [-6.7, left_nav.get_bottom()[1] - 0.16, 0],
+            [6.7, left_nav.get_bottom()[1] - 0.16, 0],
+            stroke_width=1.0,
+            color=SLIDE_CARD_STROKE,
+        )
+
+        self.hud_section_label = t_section
+        self.hud_counter_label = t_counter
+        self.hud_group = m.VGroup(left_nav, t_counter, divider)
+        return self.hud_group
+
+    def make_title_hero(
+        self,
+        main_prefix: str,
+        main_highlight: str,
+        subtitle: str,
+        accent_color: m.ParsableManimColor = SLIDE_ACCENT_MINT,
+    ) -> m.VGroup:
+        """建立開場大字報標題組（頂部短色條 + 雙色主標題 + 清晰副標題）。"""
+        top_bar = m.Line(m.ORIGIN, m.RIGHT * 0.55, stroke_width=4, color=accent_color)
+        t1 = m.Text(main_prefix, font=CHINESE_FONT, font_size=56, color=SLIDE_TEXT_MAIN)
+        t2 = m.Text(main_highlight, font=CHINESE_FONT, font_size=56, color=accent_color)
+        title_row = m.VGroup(t1, t2).arrange(m.RIGHT, buff=0.22)
+        sub = m.Text(subtitle, font=CHINESE_FONT, font_size=24, color=SLIDE_TEXT_MUTED)
+
+        hero = m.VGroup(top_bar, title_row, sub).arrange(
+            m.DOWN, buff=0.28, aligned_edge=m.LEFT
+        )
+        return hero
+
+    def make_zone_card(
+        self,
+        title: str,
+        subtitle: str = "",
+        accent_color: m.ParsableManimColor = SLIDE_ACCENT_CYAN,
+        width: float = 3.0,
+        height: float = 3.6,
+    ) -> m.VGroup:
+        """建立具備頂部主題色標 (Accent Bar) 與半透明深色底的區域卡片元件。"""
+        bg = m.RoundedRectangle(
+            corner_radius=0.14,
+            width=width,
+            height=height,
+            fill_color=SLIDE_CARD_BG,
+            fill_opacity=0.82,
+            stroke_color=SLIDE_CARD_STROKE,
+            stroke_width=1.6,
+        )
+        accent_bar = m.Line(
+            m.ORIGIN,
+            m.RIGHT * 0.65,
+            stroke_width=4.5,
+            color=accent_color,
+        )
+        accent_bar.move_to(
+            bg.get_corner(m.UL) + m.RIGHT * (0.32 + 0.325) + m.DOWN * 0.32
+        )
+
+        lbl_title = m.Text(
+            title,
+            font=CHINESE_FONT,
+            font_size=22,
+            color=SLIDE_TEXT_MAIN,
+        )
+        lbl_title.next_to(accent_bar, m.DOWN, buff=0.18, aligned_edge=m.LEFT)
+
+        card = m.VGroup(bg, accent_bar, lbl_title)
+        if subtitle:
+            lbl_sub = m.Text(
+                subtitle,
+                font=CHINESE_FONT,
+                font_size=15,
+                color=SLIDE_TEXT_MUTED,
+            )
+            lbl_sub.next_to(lbl_title, m.DOWN, buff=0.10, aligned_edge=m.LEFT)
+            card.add(lbl_sub)
+        return card
+
+    def make_code_pill(
+        self,
+        code_text: str,
+        accent_color: m.ParsableManimColor = SLIDE_ACCENT_CYAN,
+        font_size: float = 17,
+        h_pad: float = 0.32,
+        v_pad: float = 0.18,
+    ) -> m.VGroup:
+        """建立圓角指令膠囊 / 公式標籤 (Code Pill / Badge)。"""
+        txt = m.Text(code_text, font=MONO_FONT, font_size=font_size, color=accent_color)
+        pill_bg = m.RoundedRectangle(
+            corner_radius=0.10,
+            width=float(txt.width) + h_pad,
+            height=float(txt.height) + v_pad,
+            fill_color=SLIDE_PILL_BG,
+            fill_opacity=0.95,
+            stroke_color=accent_color,
+            stroke_width=1.4,
+        )
+        txt.move_to(pill_bg.get_center())
+        return m.VGroup(pill_bg, txt)
+
+    def focus_cards(
+        self,
+        cards: Sequence[m.VGroup] | m.VGroup,
+        active_indices: Sequence[int],
+        dim_opacity: float = 0.22,
+    ) -> list[m.Animation]:
+        """資訊降噪控制：高亮 `active_indices` 中的主角卡片，並將其餘卡片半透明壓暗。"""
+        anims: list[m.Animation] = []
+        active_set = set(active_indices)
+        for idx, card in enumerate(cards):
+            target_op = 1.0 if idx in active_set else dim_opacity
+            anims.append(card.animate.set_opacity(target_op))
+        return anims
+

@@ -21,7 +21,7 @@
 ManimCEAnimate/
 ├── .agents/skills/             # Agent 規範與專業技能庫 (manim-math-animation)
 ├── .gitignore                  # 忽略 media/, *.mp4, tts/, 暫存與虛擬環境
-├── manimgx_tw_helper.py        # 台灣配音輔助模組 (TWScene, TWThreeDScene, YunJheVoice)
+├── manimgx_tw_helper.py        # 台灣配音與視覺模板輔助模組 (TWScene, TWThreeDScene, TWInfographicScene, YunJheVoice)
 ├── sync_to_gdrive.ps1          # 方案 B：一鍵增量同步完成影片至 Google Drive
 ├── AngleSumDifference/         # 和差角公式幾何推導 (橫式 16:9 & 直式 9:16)
 ├── DifferenceOfCubes/          # 立方差公式 3D 剛體幾何拆解證明

@@ -1,6 +1,6 @@
 ---
 name: manim-math-animation
-description: 指導 ManimGX (Rust + wgpu 核心，相容 Manim CE API) 幾何與數學動畫製作、2D 版面自動檢查 (manimgx inspect)、靜態型別檢查 (ty check)、3D 空間幾何拆解、螢幕固定圖層（字幕與公式）、台灣男聲配音（Edge-TTS 雲哲 + self.say 自動同步）、數學破音字校正，以及「程式放 GitHub、成品影片同步 Google Drive (方案 B)」的完整工作流程與風格規範。
+description: 指導 ManimGX (Rust + wgpu 核心，相容 Manim CE API) 幾何與數學動畫製作、現代科技卡片簡報與指令地圖風格 (TWInfographicScene)、2D 版面自動檢查 (manimgx inspect)、靜態型別檢查 (ty check)、3D 空間幾何拆解、螢幕固定圖層（字幕與公式）、台灣男聲配音（Edge-TTS 雲哲 + self.say 自動同步）、數學破音字校正，以及「程式放 GitHub、成品影片同步 Google Drive (方案 B)」的完整工作流程與風格規範。
 ---
 
 # ManimGX 數學幾何動畫與配音自動同步規範 (ManimGX Math Animation Skill)
@@ -65,6 +65,22 @@ description: 指導 ManimGX (Rust + wgpu 核心，相容 Manim CE API) 幾何與
 * **平行不交錯動線**：
   1. **預先規劃錨點**：預先計算最終攤平排齊的座標軸（如 `left_edge`、間距 `gap`、中心點 `final_pos1, final_pos2, final_pos3`）。
   2. **分階段剛體位移**：先沿各自專屬軸向往外脫離 $\to$ 使用 `m.Rotate` 原地剛體翻轉 $\to$ 平行滑入最終目標錨點。
+
+### 1.4 現代科技卡片簡報與指令地圖風格 (Tech Infographic / Map Slide Style)
+當使用者要求製作**「簡報風格」、「指令地圖風格」、「色塊卡片排版」**或系統概念架構圖解時，統一繼承 `manimgx_tw_helper.py` 中的 **`TWInfographicScene`**，並遵循以下設計與降噪原則：
+1. **高對比科技色票與字級階層 (Color Coding & Typography)**：
+   * **底色與網格**：呼叫 `self.setup_slide_background()`，使用深灰藍底色 (`SLIDE_BG = "#0B0F17"`) 搭配極淡矩陣格線 (`SLIDE_GRID_COLOR = "#1E293B"`)，避免死黑背景。
+   * **頂部 HUD 導航欄**：呼叫 `self.make_slide_hud(series_title, section_title, step, total_steps)`，左上顯示彩色三線圖示與「系列名稱 | 當前章節」，右上顯示等寬字體進度計數器（如 `01 / 19`）。
+   * **四大區域主題色標 (`SLIDE_PALETTE`)**：
+     * 橘色 (`SLIDE_ACCENT_ORANGE = "#FB923C"`)
+     * 天藍 (`SLIDE_ACCENT_CYAN = "#38BDF8"`)
+     * 薄荷青綠 (`SLIDE_ACCENT_MINT = "#34D399"`)
+     * 亮紫 (`SLIDE_ACCENT_PURPLE = "#A855F7"`)
+   * **卡片與膠囊元件**：使用 `self.make_zone_card(title, subtitle, accent_color)` 建立頂部帶彩色短色標 (Accent Bar) 的半透明圓角卡片；使用 `self.make_code_pill(code_text, accent_color)` 建立圓角指令/公式膠囊標籤。
+2. **解決「資訊量過多」的三大動態降噪鐵則 (Anti-Overload Rules)**：
+   * **局部聚焦與背景壓暗 (`self.focus_cards`)**：嚴禁讓畫面上所有卡片與連線同時維持 100% 亮度。講解特定步驟時，呼叫 `self.play(*self.focus_cards(cards, active_indices=[0, 1], dim_opacity=0.22))`，只讓當前主角卡片保持 100% 亮度，其餘卡片壓暗至 `22%` 作為空間背景座標。
+   * **漸進式揭露 (Progressive Disclosure)**：先展示空白區域卡片建立空間心智地圖，再隨語音旁白一次只點亮 1 條流動箭頭 (`m.Arrow` / `m.CurvedArrow`) 與 1 個膠囊標籤，舊步驟完成後立即淡出或收斂，保持畫面留白。
+   * **單一畫面元素上限**：同一時間處於高亮狀態的卡片不超過 2 張、動態路徑箭頭不超過 2 條，確保手機與電腦螢幕皆一目了然。
 
 ---
 
@@ -162,6 +178,76 @@ class GeometryConcept3D(TWThreeDScene):
             m.FadeIn(top_formula),
             m.DrawBorderThenFill(cube, run_time=1.5),
             m.FadeIn(lbl),
+        )
+        self.wait(1.0)
+```
+
+### 4.3 現代科技卡片簡報與指令地圖標準模板 (`TWInfographicScene`)
+```python
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+import manimgx as m
+from manimgx_tw_helper import (
+    SLIDE_ACCENT_CYAN,
+    SLIDE_PALETTE,
+    TWInfographicScene,
+    YunJheVoice,
+)
+
+
+class TechInfographicSlide(TWInfographicScene):
+    voice = YunJheVoice(rate="+15%")
+
+    def construct(self) -> None:
+        # 1. 初始化深灰藍科技背景與微格線
+        self.setup_slide_background(show_grid=True)
+
+        # 2. 建立頂部 HUD 狀態欄
+        hud = self.make_slide_hud("Git 指令地圖", "本機循環", step=1, total_steps=4)
+        self.play(m.FadeIn(hud, shift=m.DOWN * 0.15), run_time=0.6)
+
+        # 3. 建立四個區域色塊卡片 (Zone Cards)
+        zones = [
+            ("工作區", "Working Dir"),
+            ("暫存區", "Staging Area"),
+            ("本機儲存庫", "Local Repo"),
+            ("遠端儲存庫", "Remote Repo"),
+        ]
+        cards = m.VGroup(
+            *[
+                self.make_zone_card(title, sub, accent_color=color, width=2.9, height=3.6)
+                for (title, sub), color in zip(zones, SLIDE_PALETTE)
+            ]
+        ).arrange(m.RIGHT, buff=0.38).shift(m.DOWN * 0.25)
+
+        cap1 = self.make_caption("檔案在四個區域之間流動，構成完整的版本控制地圖")
+        self.say(
+            "檔案在四個區域之間流動，構成完整的版本控制地圖。",
+            m.LaggedStart(*[m.FadeIn(c, shift=m.UP * 0.25) for c in cards], lag_ratio=0.12),
+            m.FadeIn(cap1, shift=m.UP * 0.08),
+        )
+
+        # 4. 動態聚焦降噪：只高亮前兩張卡片，將後兩張壓暗至 22%
+        arrow = m.Arrow(
+            cards[0].get_right(),
+            cards[1].get_left(),
+            color=SLIDE_ACCENT_CYAN,
+            buff=0.12,
+        )
+        pill = self.make_code_pill("git add", accent_color=SLIDE_ACCENT_CYAN).next_to(
+            arrow, m.UP, buff=0.14
+        )
+        cap2 = self.make_caption("使用 git add 將修改挑進暫存區")
+
+        self.say(
+            "首先使用 git add，將修改好的檔案挑進暫存區。",
+            *self.focus_cards(cards, active_indices=[0, 1], dim_opacity=0.22),
+            m.GrowArrow(arrow),
+            m.FadeIn(pill, scale=0.9),
+            m.FadeOut(cap1, shift=m.DOWN * 0.08),
+            m.FadeIn(cap2, shift=m.UP * 0.08),
         )
         self.wait(1.0)
 ```
