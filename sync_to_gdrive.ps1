@@ -1,6 +1,8 @@
 [CmdletBinding()]
 param(
-    [string]$TargetGDrive = ""
+    [string]$TargetGDrive = "",
+    [string[]]$Topics = @(),
+    [string[]]$VideoNames = @()
 )
 
 $ErrorActionPreference = "Stop"
@@ -35,7 +37,8 @@ $copiedCount = 0
 $totalSize = 0
 
 $folders = Get-ChildItem -Path $projectRoot -Directory | Where-Object { 
-    $_.Name -notmatch "^(\.agents|\.git|media|voice_samples|\.venv)$" 
+    $_.Name -notmatch "^(\.agents|\.git|media|voice_samples|\.venv)$" -and
+    ($Topics.Count -eq 0 -or $_.Name -in $Topics)
 }
 
 foreach ($folder in $folders) {
@@ -50,7 +53,9 @@ foreach ($folder in $folders) {
     $mediaVideos = Get-ChildItem -Path $folder.FullName -Recurse -Filter "*.mp4" -File -ErrorAction SilentlyContinue | 
         Where-Object { $_.FullName -notmatch "partial_movie_files" -and $_.DirectoryName -ne $folder.FullName }
 
-    $allVideos = @($rootVideos) + @($mediaVideos)
+    $allVideos = (@($rootVideos) + @($mediaVideos)) | Where-Object {
+        $VideoNames.Count -eq 0 -or $_.Name -in $VideoNames
+    }
 
     foreach ($video in $allVideos) {
         $destPath = Join-Path $destFolder $video.Name

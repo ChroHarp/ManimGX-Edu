@@ -35,6 +35,8 @@ ManimCEAnimate/
 
 ## 極速開發 4 步工作流
 
+Agent 工作請先閱讀 [AGENTS.md](AGENTS.md)。**前期試片與修改一律使用 Edge-TTS；使用者確認分鏡、旁白與節奏，準備上片時，才用 Colab Seed-VC F0 轉成專屬聲線並合成。** 詳細規範見 [.agents/skills/manim-math-animation/SKILL.md](.agents/skills/manim-math-animation/SKILL.md)。
+
 在專案目錄下進行動畫開發時，請遵循標準 4 步循環：
 
 ### 1. 撰寫腳本

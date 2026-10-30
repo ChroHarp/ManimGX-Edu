@@ -9,6 +9,12 @@ description: 指導 ManimGX (Rust + wgpu 核心，相容 Manim CE API) 幾何與
 
 ---
 
+## 配音階段：先試片，確認上片才換專屬聲線
+
+先閱讀專案根目錄 [AGENTS.md](../../../AGENTS.md) 的兩階段配音規則：**前期測試及修改一律使用台灣中文 Edge-TTS；使用者確認分鏡、旁白、節奏並表示要製作上片成品後，才用 Colab Seed-VC F0 轉為已選定的專屬聲線。** 產生完整 MP4 或使用 1080p／60fps 不等於確認上片。已確認的同一範圍不需反覆詢問。
+
+修改分鏡時先使用 Edge-TTS 快取驗證，不要每次迭代都啟動 Colab。保留動畫正常速度，語音較長時在分鏡末端適度停留，必要時略調語速。上片階段的來源音訊、F0 設定、快取與交付流程，見 [references/voice-production.md](references/voice-production.md)；前期試片不用載入詳細轉換流程。
+
 ## 0. 標準化 4+1 步極速工作流程 (Agentic 5-Step Loop)
 
 在開發或修改任何數學動畫時，**嚴禁盲目直接算圖或手動推算旁白秒數**，必須嚴格遵循以下標準閉環：
@@ -16,7 +22,7 @@ description: 指導 ManimGX (Rust + wgpu 核心，相容 Manim CE API) 幾何與
 1. **撰寫腳本 (Author)**：
    * 統一匯入 `import manimgx as m`（或繼承專案根目錄 `manimgx_tw_helper.py` 中的 `TWScene` / `TWThreeDScene`）。
    * **禁止使用** `import manim` 或 `config.no_latex_cleanup = True`（ManimGX 內建 Typst 數學排版與原生 x264 編碼，無 LaTeX 暫存鎖定問題）。
-   * 優先使用 `self.say("旁白台詞...", anim1, anim2)` 讓動畫自動跟隨語音時長同步，徹底淘汰手動硬編碼 `start` 秒數的外部 FFmpeg 腳本。
+   * 旁白與字幕依實際語音長度同步，不手動猜測起訖秒數。可使用 `self.say()`；但它會延長傳入動畫的時間，若因此拖慢動作，改用 `ArcDegree/narration_scene.py` 的分鏡起訖模式：語音與正常速度動畫同時開始，只在分鏡末端補上尚餘的語音時間。前期音軌使用 Edge-TTS；上片階段才換成 Colab 轉換結果。
 2. **靜態型別檢查 (Type Check)**：
    * 執行 `ty check <scene_file.py>`。
    * 必須確保 **0 錯誤 (`All checks passed!`)**，在 0.1 秒內排除未定義變數、拼錯的關鍵字參數或 `.animate` 鏈型別錯誤。
@@ -30,12 +36,12 @@ description: 指導 ManimGX (Rust + wgpu 核心，相容 Manim CE API) 幾何與
    * 檢視輸出的 `*.storyboard.png` 分鏡圖，若 `manimgx inspect` 回傳 `exit code 1`，必須根據紅框編號與行號修正座標後再次 `inspect`，直到版面清晰無誤。
 4. **GPU 極速渲染交付 (Render)**：
    * 草稿快速驗證：`manimgx render <scene_file.py> -r 1280x720 --fps 30`
-   * 正式成品輸出：`manimgx render <scene_file.py>`（預設輸出 1920×1080 @ 60fps MP4，並自動混入 `self.say` 音軌與產出 `.srt` 字幕）。
+   * 高畫質輸出（前期仍用 Edge-TTS，確認上片才換專屬聲線）：`manimgx render <scene_file.py>`（預設輸出 1920×1080 @ 60fps MP4，並自動混入 `self.say` 音軌與產出 `.srt` 字幕）。
    * 直式短影音 (9:16)：`manimgx render <scene_file.py> -r 1080x1920`（ManimGX 直式預設寬 8 × 高 14.2 單位；若移植舊版 9×16 座標腳本，可在開頭設定 `m.config.frame_height = 16.0`）。
 5. **雲端雙軌自動歸位 (Auto-Sync & Backup - 方案 B [強制執行])**：
    * **渲染產出影片後必須自動同步**：凡是透過 `manimgx render`、`manim` 或腳本生成新的 `.mp4` 成品後，Agent **必須主動且自動**執行同步指令，無需等待使用者提醒：
      ```powershell
-     powershell -ExecutionPolicy Bypass -File .\sync_to_gdrive.ps1
+     .\sync_to_gdrive.ps1 -Topics <本次主題> -VideoNames <本次成品檔名>
      ```
    * 確保所有完成的媒體檔案立即增量歸位至 Google Drive（`ManimGX-media` 資料夾）。
    * 當階段性任務完成時，提示或協助使用者將乾淨輕量的程式碼推送到 GitHub（`git add .`、`git commit`、`git push`）。
@@ -86,9 +92,13 @@ description: 指導 ManimGX (Rust + wgpu 核心，相容 Manim CE API) 幾何與
 
 ## 2. 配音規格與發音校正規範 (TTS & Pronunciation Protocol)
 
-### 2.1 原生 `YunJheVoice` 語音引擎與快取機制
+### 2.1 測試階段：原生 `YunJheVoice` 語音引擎與快取機制
 * **TTS 引擎**：採用 `manimgx_tw_helper.py` 中的 `YunJheVoice`（底層串接微軟神經網絡語音 `edge-tts`，預設台灣男聲 **`zh-TW-YunJheNeural`**，語速預設 `+15%`）。
 * **自動雜湊快取**：ManimGX 會自動將 `self.say()` 合成的音檔與單詞時間軸儲存在場景檔案旁的 `voice/` 目錄下。只要台詞未改動，重複渲染時完全離線零延遲讀取。
+
+### 確認上片後的專屬聲線
+
+使用已確認的 Edge-TTS 來源逐句轉換，採用使用者選定的原始 F0 方向，保留低音與沙啞特色，不使用已淘汰的升調版本。完整參數、模型紀錄限制、快取條件與 Colab 關閉規則見 [專屬聲線流程](references/voice-production.md)。這是上片前的最後階段，不是前期預設配音方式。
 
 ### 2.2 數學破音字自動校正與字幕分離原則 (Heteronyms Handling)
 `YunJheVoice` 內建 `fix_tw_heteronyms()`，會在**送入 `edge-tts` 的最後一刻**自動執行同音異字替換，因此**在撰寫 `self.say("...")` 時，請直接書寫標準正體中文字**（確保畫面與 `.srt` 字幕為正統漢字，而語音自動讀出正確二聲/一聲）：
@@ -115,7 +125,7 @@ description: 指導 ManimGX (Rust + wgpu 核心，相容 Manim CE API) 幾何與
    * GitHub 只儲存 `.py`、`.md`、`.toml`、`.ps1` 等純文字代碼與設定，倉庫體積控制在數 MB 以內。
 3. **媒體檔案自動歸位至 Google Drive（Agent 強制行為）**：
    * 任何動畫腳本渲染完成產出 `.mp4` 後，Agent **必須自動呼叫**根目錄下的 `sync_to_gdrive.ps1`，把成品搬移/同步到 Google Drive 上的 `ManimGX-media` 資料夾（如 `G:\我的雲端硬碟\數學教學\ManimGX-media`）。
-   * 增量同步機制只針對最終生成的 `.mp4` 影片進行備份，自動依主題建立對應目錄，不拷貝無用的分段切片暫存。
+   * 使用 `-Topics` 與 `-VideoNames` 限定本次主題及成品，避免同步其他工作。增量同步機制只針對最終生成的 `.mp4` 影片進行備份，自動依主題建立對應目錄，不拷貝無用的分段切片暫存。
    * 同步完成後主動向使用者回報歸位狀態（已複製哪些檔案、雲端硬碟路徑）。
 
 ---

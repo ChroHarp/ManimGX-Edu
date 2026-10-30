@@ -32,6 +32,7 @@ tts/
 **/tts/
 master_narration.mp3
 master_narration.wav
+ArcDegree/narration_*/
 
 # 4. Python 暫存與虛擬環境
 __pycache__/
