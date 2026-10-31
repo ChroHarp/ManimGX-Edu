@@ -50,3 +50,11 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+
+# 6. Manim Slides Web Presentation (dist)
+slides/files/
+!dist/
+!dist/**
+!dist/**/*.mp4
+
+
